@@ -1,0 +1,16 @@
+{
+  "type": "record",
+  "name": "myrecord",
+  "fields": [
+    {
+      "name": "f2",
+      "type": [
+        "null",
+        "string"
+      ],
+      "arg.properties": {
+        "regex": "[a-z]{5,6}"
+      }
+    }
+  ]
+}
