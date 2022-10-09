@@ -28,9 +28,9 @@ kafka-avro-console-consumer \
 * Change the compatibility of the topic to `FORWARD` 
 
 ```
-$ curl http://localhost:8081/config/t1-a-value
+curl http://localhost:8081/config/t1-a-value
 
-$ curl -X PUT \
+curl -X PUT \
 -H "Content-Type: application/vnd.schemaregistry.v1+json" \
 -H "Accept: application/vnd.schemaregistry.v1+json, application/vnd.schemaregistry+json, application/json" \
 http://localhost:8081/config/t1-a-value \
@@ -40,7 +40,7 @@ http://localhost:8081/config/t1-a-value \
 * Check if the upgraded schema is compatible
 
 ```
-$ jq -sR '.|{schema: .}' src/main/resources/forward/t1-a-value.0.avsc | \
+jq -sR '.|{schema: .}' src/main/resources/forward/t1-a-value.0.avsc | \
 curl -X POST \
 -H "Content-Type: application/vnd.schemaregistry.v1+json" \
 -H "Accept: application/vnd.schemaregistry.v1+json, application/vnd.schemaregistry+json, application/json" \
@@ -87,7 +87,6 @@ kafka-avro-console-producer \
 --topic t2-a \
 --property value.schema=$(jq -c . src/main/resources/backward/t2-a-value.0.avsc)
 
-{"f1": "value1-a"}
 ```
 * Check the message
 
@@ -101,9 +100,9 @@ kafka-avro-console-consumer \
 * Change the compatibility of the topic to `BACKWARD` 
 
 ```
-$ curl http://localhost:8081/config/t2-a-value
+curl http://localhost:8081/config/t2-a-value
 
-$ curl -X PUT \
+curl -X PUT \
 -H "Content-Type: application/vnd.schemaregistry.v1+json" \
 -H "Accept: application/vnd.schemaregistry.v1+json, application/vnd.schemaregistry+json, application/json" \
 http://localhost:8081/config/t2-a-value -d '{  "compatibility": "BACKWARD"}' 
@@ -139,7 +138,7 @@ kafka-avro-console-producer \
 * Check if the upgraded schema is compatible
 
 ```
-$ jq -sR '.|{schema: .}' src/main/resources/backward/t2-a-value.compatible.avsc | \
+jq -sR '.|{schema: .}' src/main/resources/backward/t2-a-value.compatible.avsc | \
 curl -X POST \
 -H "Content-Type: application/vnd.schemaregistry.v1+json" \
 -H "Accept: application/vnd.schemaregistry.v1+json, application/vnd.schemaregistry+json, application/json"\
