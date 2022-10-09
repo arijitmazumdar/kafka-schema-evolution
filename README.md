@@ -27,7 +27,7 @@ $ curl -X PUT -H "Content-Type: application/vnd.schemaregistry.v1+json" -H "Acce
 * Check if the upgraded schema is compatible
 
 ```
-$ jq -sR '.|{schema: .}' src/main/resources/backward/t2-a-value.0.avsc | curl -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" -H "Accept: application/vnd.schemaregistry.v1+json, application/vnd.schemaregistry+json, application/json" http://localhost:8081/compatibility/subjects/t1-a-value/versions/latest -d @- 
+$ jq -sR '.|{schema: .}' src/main/resources/forward/t1-a-value.0.avsc | curl -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" -H "Accept: application/vnd.schemaregistry.v1+json, application/vnd.schemaregistry+json, application/json" http://localhost:8081/compatibility/subjects/t1-a-value/versions/latest -d @- 
 
 ```
 * Produce message with upgraded schema
