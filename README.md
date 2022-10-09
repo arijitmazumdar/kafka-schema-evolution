@@ -9,12 +9,12 @@ This project is to test Kafka schema evolution compatibility. This project will 
 
 * Produce messages in topic `t1-a`. 
 ```
+cat data/default-data.txt | \
 kafka-avro-console-producer \
 --bootstrap-server localhost:9092 \
 --property schema.registry.url=http://localhost:8081 --topic t1-a \
---property value.schema='{"type":"record","namespace":"com.arijit","name":"Record","fields":[{"name":"f1","type":"string"}]}'
+--property value.schema=$(jq -c . src/main/resources/forward/t1-a-value.0.avsc)
 
-{"f1": "value1-a"}
 ```
 * Check the message
 
@@ -50,13 +50,11 @@ http://localhost:8081/compatibility/subjects/t1-a-value/versions/latest -d @-
 * Produce message with upgraded schema
 
 ```
+cat data/upgrade-data.txt | \
 kafka-avro-console-producer \
 --bootstrap-server localhost:9092 \
 --property schema.registry.url=http://localhost:8081 --topic t1-a \
---property value.schema='{"type":"record","namespace":"com.arijit","name":"Record","fields":[{"name":"f1","type":"string","arg.properties":{"regex":"[a-z]{5,6}"}},{"name":"f2","type":["null","string"],"arg.properties":{"regex":"[a-z]{5,6}"}}]}'
-
-{"f1": "value1-a", "f2":{"string":"value2-a"}}
-{"f1": "value1-a", "f2": null}
+--property value.schema=$(jq -c . src/main/resources/forward/t1-a-value.compatible.avsc)
 
 ```
 * Compile and Run the kafka consumer
@@ -70,7 +68,10 @@ clean compile package
 mvn exec:java -Dexec.mainClass=com.arijit.Consumer -D topic=t1-a
 
 ....
-{"f1": "value1-a"}
+key = , value = {"f1": "value1-a"}
+key = , value = {"f1": "value1-a"}
+key = , value = {"f1": "value1-a"}
+key = , value = {"f1": "value1-a"}
 
 ```
 
@@ -79,11 +80,12 @@ mvn exec:java -Dexec.mainClass=com.arijit.Consumer -D topic=t1-a
 
 * Produce messages in topic `t2-a`. 
 ```
+cat data/default-data.txt | \
 kafka-avro-console-producer \
 --bootstrap-server localhost:9092 \
 --property schema.registry.url=http://localhost:8081 \
 --topic t2-a \
---property value.schema='{"type":"record","namespace":"com.arijit","name":"Record","fields":[{"name":"f1","type":"string"}]}'
+--property value.schema=$(jq -c . src/main/resources/backward/t2-a-value.0.avsc)
 
 {"f1": "value1-a"}
 ```
@@ -109,7 +111,7 @@ http://localhost:8081/config/t2-a-value -d '{  "compatibility": "BACKWARD"}'
 * Compile and Run the kafka consumer
 
 ```
-mvn -D schemafile=t1-a-value.0.avsc \
+mvn -D schemafile=t2-a-value.0.avsc \
 -D schemapath=src/main/resources/forward \
 clean compile package
 
@@ -126,12 +128,12 @@ key = , value = {"f1": "value1-a"}
 * Produce more messages to check backward comapitibility
 
 ```
+cat data/default-data.txt | \
 kafka-avro-console-producer \
 --bootstrap-server localhost:9092 \
 --property schema.registry.url=http://localhost:8081 --topic t2-a \
---property value.schema='{"type":"record","namespace":"com.arijit","name":"Record","fields":[{"name":"f1","type":"string"}]}'
+--property value.schema=$(jq -c . src/main/resources/backward/t2-a-value.0.avsc)
 
-{"f1": "value1-a"}
 ```
 
 * Check if the upgraded schema is compatible
@@ -162,16 +164,14 @@ key = , value = {"f1": "value1-a", "f2": "default"}
 ```
 
 
-* We can obviosly produce message with upgraded schema
+* We can ofcourse produce message with upgraded schema
 
 ```
+cat data/upgrade-data-2.txt | \
 kafka-avro-console-producer \
 --bootstrap-server localhost:9092 \
 --property schema.registry.url=http://localhost:8081 --topic t2-a \
---property value.schema='{"type":"record","namespace":"com.arijit","name":"Record","fields":[{"name":"f1","type":"string","arg.properties":{"regex":"[a-z]{5,6}"}},{"name":"f2","type":["null","string"],"arg.properties":{"regex":"[a-z]{5,6}"}}]}'
-
-{"f1": "value1-a", "f2":{"string":"value2-a"}}
-{"f1": "value1-a", "f2": null}
+--property value.schema=$(jq -c . src/main/resources/backward/t2-a-value.compatible.avsc)
 
 ```
 
