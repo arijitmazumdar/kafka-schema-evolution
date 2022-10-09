@@ -19,7 +19,10 @@ kafka-avro-console-producer \
 * Check the message
 
 ```
-kafka-avro-console-consumer --bootstrap-server localhost:9092 --from-beginning --topic t1-a --property schema.registry.url=http://localhost:8081
+kafka-avro-console-consumer \
+--bootstrap-server localhost:9092 \
+--from-beginning --topic t1-a \
+--property schema.registry.url=http://localhost:8081
 
 ```
 * Change the compatibility of the topic to `FORWARD` 
@@ -27,7 +30,11 @@ kafka-avro-console-consumer --bootstrap-server localhost:9092 --from-beginning -
 ```
 $ curl http://localhost:8081/config/t1-a-value
 
-$ curl -X PUT -H "Content-Type: application/vnd.schemaregistry.v1+json" -H "Accept: application/vnd.schemaregistry.v1+json, application/vnd.schemaregistry+json, application/json" http://localhost:8081/config/t1-a-value -d '{  "compatibility": "FORWARD"}' 
+$ curl -X PUT \
+-H "Content-Type: application/vnd.schemaregistry.v1+json" \
+-H "Accept: application/vnd.schemaregistry.v1+json, application/vnd.schemaregistry+json, application/json" \
+http://localhost:8081/config/t1-a-value \
+-d '{  "compatibility": "FORWARD"}' 
 ```
 
 * Check if the upgraded schema is compatible
