@@ -40,13 +40,19 @@ http://localhost:8081/config/t1-a-value \
 * Check if the upgraded schema is compatible
 
 ```
-$ jq -sR '.|{schema: .}' src/main/resources/forward/t1-a-value.0.avsc | curl -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" -H "Accept: application/vnd.schemaregistry.v1+json, application/vnd.schemaregistry+json, application/json" http://localhost:8081/compatibility/subjects/t1-a-value/versions/latest -d @- 
+$ jq -sR '.|{schema: .}' src/main/resources/forward/t1-a-value.0.avsc | \
+curl -X POST \
+-H "Content-Type: application/vnd.schemaregistry.v1+json" \
+-H "Accept: application/vnd.schemaregistry.v1+json, application/vnd.schemaregistry+json, application/json" \
+http://localhost:8081/compatibility/subjects/t1-a-value/versions/latest -d @- 
 
 ```
 * Produce message with upgraded schema
 
 ```
-kafka-avro-console-producer --bootstrap-server localhost:9092 --property schema.registry.url=http://localhost:8081 --topic t1-a \
+kafka-avro-console-producer \
+--bootstrap-server localhost:9092 \
+--property schema.registry.url=http://localhost:8081 --topic t1-a \
 --property value.schema='{"type":"record","namespace":"com.arijit","name":"Record","fields":[{"name":"f1","type":"string","arg.properties":{"regex":"[a-z]{5,6}"}},{"name":"f2","type":["null","string"],"arg.properties":{"regex":"[a-z]{5,6}"}}]}'
 
 {"f1": "value1-a", "f2":{"string":"value2-a"}}
