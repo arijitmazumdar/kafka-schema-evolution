@@ -111,9 +111,9 @@
             <goal>schema</goal>
           </goals>
           <configuration>
-            <sourceDirectory>${project.basedir}/src/main/resources/forward/</sourceDirectory>
+            <sourceDirectory>${project.basedir}/${schemapath}/</sourceDirectory>
             <includes>
-              <include>t1-a-value.compatible.avsc</include>
+              <include>${schemafile}</include>
             </includes>
             <outputDirectory>${project.build.directory}/generated-sources</outputDirectory>
           </configuration>

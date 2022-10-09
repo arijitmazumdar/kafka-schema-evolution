@@ -14,6 +14,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.log4j.Logger;
 
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;
@@ -21,14 +22,15 @@ import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig;
 
 public class Consumer{
 
-    private static final String TOPIC = "t1-a";
+    
     private static final Properties props = new Properties();
     private static String configFile;
+    static Logger log = Logger.getLogger(Consumer.class.getName());
 
     @SuppressWarnings("InfiniteLoopStatement")
     public static void main(final String[] args) throws IOException {
 
-        if (args.length < 1) {
+        if (args.length == 0) {
           // Backwards compatibility, assume localhost
           props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
           props.put(AbstractKafkaSchemaSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, "http://localhost:8081");
@@ -46,6 +48,16 @@ public class Consumer{
             }
           }
         }
+
+        String TOPIC = null;
+        if(System.getProperty("topic") != null ) {
+          TOPIC = System.getProperty("topic");
+          System.out.printf("Topic Name: %s%n", TOPIC);
+        } else {
+          throw new Error("topic not set");
+        }
+         
+
 
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "t1-a-consumer");
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");

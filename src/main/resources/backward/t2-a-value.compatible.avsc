@@ -1,0 +1,22 @@
+{
+  "type": "record",
+  "namespace": "com.arijit",
+  "name": "Record",
+  "fields": [
+    {
+      "name": "f1",
+      "type": "string",
+      "arg.properties": {
+        "regex": "[a-z]{5,6}"
+      }
+    },
+    {
+      "name": "f2",
+      "type": "string",
+      "default": "default",
+      "arg.properties": {
+        "regex": "[a-z]{5,6}"
+      }
+    }
+  ]
+}
