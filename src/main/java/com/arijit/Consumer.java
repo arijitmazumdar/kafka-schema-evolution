@@ -66,7 +66,7 @@ public class Consumer{
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KafkaAvroDeserializer.class);
         props.put(KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG, true);
-
+ 
         try (final KafkaConsumer<String, Record> consumer = new KafkaConsumer<>(props)) {
             consumer.subscribe(Collections.singletonList(TOPIC));
 
@@ -80,8 +80,8 @@ public class Consumer{
                     System.out.printf("key = %s, value = %s%n", key, value);
                 }
             }
-
-        }
+        
+        }        
     }
 
 }

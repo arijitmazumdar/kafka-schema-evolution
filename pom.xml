@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-      <groupId>io.confluent</groupId>
-      <artifactId>rest-utils-parent</artifactId>
-      <version>7.2.2</version>
+    <groupId>io.confluent</groupId>
+    <artifactId>rest-utils-parent</artifactId>
+    <version>7.2.2</version>
   </parent>
 
   <groupId>com.arijit</groupId>
@@ -19,7 +18,7 @@
   <url>http://www.example.com</url>
 
 
-    <properties>
+  <properties>
     <!-- Keep versions as properties to allow easy modification -->
     <java.version>8</java.version>
     <gson.version>2.2.4</gson.version>
@@ -67,14 +66,14 @@
       <version>${gson.version}</version>
     </dependency>
     <dependency>
-       <groupId>org.slf4j</groupId>
-       <artifactId>slf4j-log4j12</artifactId>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
       <version>${slf4j.version}</version>
-   </dependency>
-   <!-- Use a repackaged version of log4j with security patches. Default log4j v1.2 is a transitive dependency of slf4j-log4j12, but it is excluded in common/pom.xml -->
+    </dependency>
+    <!-- Use a repackaged version of log4j with security patches. Default log4j v1.2 is a transitive dependency of slf4j-log4j12, but it is excluded in common/pom.xml -->
     <dependency>
-        <groupId>io.confluent</groupId>
-        <artifactId>confluent-log4j</artifactId>
+      <groupId>io.confluent</groupId>
+      <artifactId>confluent-log4j</artifactId>
       <version>${confluent-log4j.version}</version>
     </dependency>
     <dependency>
@@ -83,7 +82,7 @@
       <version>4.11</version>
       <scope>test</scope>
     </dependency>
-    
+
   </dependencies>
 
   <build>
@@ -104,44 +103,44 @@
         <groupId>org.apache.avro</groupId>
         <artifactId>avro-maven-plugin</artifactId>
         <version>${avro.version}</version>
-        <executions>
+        <executions>  
           <execution>
-          <phase>generate-sources</phase>
-          <goals>
-            <goal>schema</goal>
-          </goals>
-          <configuration>
-            <sourceDirectory>${project.basedir}/${schemapath}/</sourceDirectory>
-            <includes>
-              <include>${schemafile}</include>
-            </includes>
-            <outputDirectory>${project.build.directory}/generated-sources</outputDirectory>
-          </configuration>
-        </execution>
-      </executions>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>schema</goal>
+            </goals>
+            <configuration>
+              <sourceDirectory>${project.basedir}/${schemapath}/</sourceDirectory>
+              <includes>
+                <include>${schemafile}</include>
+              </includes>
+              <outputDirectory>${project.build.directory}/generated-sources</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
       <plugin>
-          <groupId>io.confluent</groupId>
-          <artifactId>kafka-schema-registry-maven-plugin</artifactId>
-          <version>${io.confluent.schema-registry.version}</version>
-          <configuration>
-              <schemaRegistryUrls>
-                  <param>${schemaRegistryUrl}</param>
-              </schemaRegistryUrls>
-              <userInfoConfig>${schemaRegistryBasicAuthUserInfo}</userInfoConfig>
-              <subjects>
-                  <transactions-value>src/main/resources/avro/io/confluent/examples/clients/basicavro/Payment2a.avsc</transactions-value>
-              </subjects>
-          </configuration>
-          <goals>
-              <goal>test-compatibility</goal>
-          </goals>
+        <groupId>io.confluent</groupId>
+        <artifactId>kafka-schema-registry-maven-plugin</artifactId>
+        <version>${io.confluent.schema-registry.version}</version>
+        <configuration>
+          <schemaRegistryUrls>
+            <param>${schemaRegistryUrl}</param>
+          </schemaRegistryUrls>
+          <userInfoConfig>${schemaRegistryBasicAuthUserInfo}</userInfoConfig>
+          <subjects>
+            <transactions-value>src/main/resources/avro/io/confluent/examples/clients/basicavro/Payment2a.avsc</transactions-value>
+          </subjects>
+        </configuration>
+        <goals>
+          <goal>test-compatibility</goal>
+        </goals>
       </plugin>
       <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-checkstyle-plugin</artifactId>
-          <executions>
-              <!--
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <executions>
+          <!--
                This declaration merges with the one in the parent, rather
                than overriding it, so we need to disable the "validate" phase
                execution that the parent declares and declare our own
@@ -157,32 +156,32 @@
                Also, we want to disable the parent's configuration because it declares stuff
                we don't care about, like suppressions. (Honestly, it shouldn't)
                -->
-              <execution>
-                  <id>validate</id>
-                  <phase>none</phase>
-                  <configuration>
-                      <skip>true</skip>
-                  </configuration>
-              </execution>
-              <execution>
-                  <id>test-compile</id>
-                  <phase>test-compile</phase>
-                  <configuration>
-                      <encoding>UTF-8</encoding>
-                      <consoleOutput>true</consoleOutput>
-                      <failsOnError>true</failsOnError>
-                      <failOnViolation>true</failOnViolation>
-                      <includeResources>false</includeResources>
-                      <includeTestResources>false</includeTestResources>
-                      <includeTestSourceDirectory>true</includeTestSourceDirectory>
-                      <excludes>io/confluent/examples/streams/avro/**</excludes>
-                      <configLocation>checkstyle.xml</configLocation>
-                  </configuration>
-                  <goals>
-                      <goal>check</goal>
-                  </goals>
-              </execution>
-          </executions>
+          <execution>
+            <id>validate</id>
+            <phase>none</phase>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
+          </execution>
+          <execution>
+            <id>test-compile</id>
+            <phase>test-compile</phase>
+            <configuration>
+              <encoding>UTF-8</encoding>
+              <consoleOutput>true</consoleOutput>
+              <failsOnError>true</failsOnError>
+              <failOnViolation>true</failOnViolation>
+              <includeResources>false</includeResources>
+              <includeTestResources>false</includeTestResources>
+              <includeTestSourceDirectory>true</includeTestSourceDirectory>
+              <excludes>io/confluent/examples/streams/avro/**</excludes>
+              <configLocation>checkstyle.xml</configLocation>
+            </configuration>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
