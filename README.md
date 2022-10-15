@@ -74,10 +74,10 @@ mvn -D schemafile=t1-a-value.0.avsc \
 clean compile package
 
 
-mvn exec:java -Dexec.mainClass=com.arijit.Consumer -D topic=t1-a
+mvn exec:java -Dexec.mainClass=com.arijit.Consumer -Dexec.args="-t t1-a"
 
 ## Alternatingly 
-mvn exec:java -Dexec.mainClass=com.arijit.GenericConsumer -D topic=t1-a
+mvn exec:java -Dexec.mainClass=com.arijit.GenericConsumer -Dexec.args="-t t1-a"
 
 ....
 key = , value = {"f1": "value1-a"}
@@ -127,10 +127,10 @@ mvn -D schemafile=t2-a-value.0.avsc \
 clean compile package
 
 
-mvn exec:java -Dexec.mainClass=com.arijit.Consumer -D topic=t1-a
+mvn exec:java -Dexec.mainClass=com.arijit.Consumer -Dexec.args="-t t1-a"
 
 ## Alternatingly 
-mvn exec:java -Dexec.mainClass=com.arijit.GenericConsumer -D topic=t1-a
+mvn exec:java -Dexec.mainClass=com.arijit.GenericConsumer -Dexec.args="-t t1-a"
 
 ....
 key = , value = {"f1": "value1-a"}
