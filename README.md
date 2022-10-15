@@ -5,11 +5,11 @@ Schema registry plays a very important and pivotal role in Kafka world where pro
 
 Here we will go through will check the behavior of consumer, when schema is upgraded by Producer or by Consumer under different compatibility mode.
 
-## Kafka Consumer and Producer
-### Prerequisite
+## Prerequisite
 1. Confluent platform quickstart [ local ](https://docs.confluent.io/platform/current/platform-quickstart.html#prerequisites). 
 2. `jq` for json parsing 
 
+## Kafka Consumer and Producer
 ### Scenario
 1. In the first scenario Prodcucer is publishing (kafka-avro-producer) into topic `t1-a` using `t1-a-value.0.avsc`, and consumer (java program) consuming the same schema. The topic has been set to `FORWARD` compatibility mode. The producer upgrades the schema to `t1-a-value.compatible.avsc`, while consumer consumes using the old schema. In the following example it is demonstrated that consumer can consume the message without any issue, infact it is ignorant to the change of the schema.
 2. In the first scenario Prodcucer is publishing (kafka-avro-producer) into topic `t2-a` using `t2-a-value.0.avsc`, and consumer (java program) consuming the same schema. The topic has been set to `BACKWARD` compatibility mode. The consumer upgrades the schema to `t2-a-value.compatible.avsc`, while producer produces using the old schema. In the following example it is demonstrated that consumer can consume the message with the new schema any issue, infact to it is ignored to the change of the schema.
