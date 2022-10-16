@@ -22,7 +22,7 @@ cat data/default-data.txt | \
 kafka-avro-console-producer \
 --bootstrap-server localhost:9092 \
 --property schema.registry.url=http://localhost:8081 --topic t1-a \
---property value.schema=$(jq -c . src/main/resources/forward/t1-a-value.0.avsc)
+--property value.schema=$(jq -c . src/main/resources/schema/forward/t1-a-value.0.avsc)
 
 ```
 * Check the message
@@ -49,7 +49,7 @@ http://localhost:8081/config/t1-a-value \
 * Check if the upgraded schema is compatible
 
 ```
-jq -sR '.|{schema: .}' src/main/resources/forward/t1-a-value.0.avsc | \
+jq -sR '.|{schema: .}' src/main/resources/schema/forward/t1-a-value.0.avsc | \
 curl -X POST \
 -H "Content-Type: application/vnd.schemaregistry.v1+json" \
 -H "Accept: application/vnd.schemaregistry.v1+json, application/vnd.schemaregistry+json, application/json" \
@@ -63,14 +63,14 @@ cat data/upgrade-data.txt | \
 kafka-avro-console-producer \
 --bootstrap-server localhost:9092 \
 --property schema.registry.url=http://localhost:8081 --topic t1-a \
---property value.schema=$(jq -c . src/main/resources/forward/t1-a-value.compatible.avsc)
+--property value.schema=$(jq -c . src/main/resources/schema/forward/t1-a-value.compatible.avsc)
 
 ```
 * Compile and Run the kafka consumer
 
 ```
 mvn -D schemafile=t1-a-value.0.avsc \
--D schemapath=src/main/resources/forward \
+-D schemapath=src/main/resources/schema/forward \
 clean compile package
 
 
@@ -97,7 +97,7 @@ kafka-avro-console-producer \
 --bootstrap-server localhost:9092 \
 --property schema.registry.url=http://localhost:8081 \
 --topic t2-a \
---property value.schema=$(jq -c . src/main/resources/backward/t2-a-value.0.avsc)
+--property value.schema=$(jq -c . src/main/resources/schema/backward/t2-a-value.0.avsc)
 
 ```
 * Check the message
@@ -123,7 +123,7 @@ http://localhost:8081/config/t2-a-value -d '{  "compatibility": "BACKWARD"}'
 
 ```
 mvn -D schemafile=t2-a-value.0.avsc \
--D schemapath=src/main/resources/forward \
+-D schemapath=src/main/resources/schema/forward \
 clean compile package
 
 
@@ -146,14 +146,14 @@ cat data/default-data.txt | \
 kafka-avro-console-producer \
 --bootstrap-server localhost:9092 \
 --property schema.registry.url=http://localhost:8081 --topic t2-a \
---property value.schema=$(jq -c . src/main/resources/backward/t2-a-value.0.avsc)
+--property value.schema=$(jq -c . src/main/resources/schema/backward/t2-a-value.0.avsc)
 
 ```
 
 * Check if the upgraded schema is compatible
 
 ```
-jq -sR '.|{schema: .}' src/main/resources/backward/t2-a-value.compatible.avsc | \
+jq -sR '.|{schema: .}' src/main/resources/schema/backward/t2-a-value.compatible.avsc | \
 curl -X POST \
 -H "Content-Type: application/vnd.schemaregistry.v1+json" \
 -H "Accept: application/vnd.schemaregistry.v1+json, application/vnd.schemaregistry+json, application/json"\
@@ -163,7 +163,7 @@ curl -X POST \
 * Upgrade the consumer with new schema. We can see the messages with default value in field `f2`
 ```
 mvn -D schemafile=t2-a-value.0.avsc \
- -D schemapath=src/main/resources/backward \
+ -D schemapath=src/main/resources/schema/backward \
   clean compile package
 
 
@@ -187,7 +187,7 @@ cat data/upgrade-data-2.txt | \
 kafka-avro-console-producer \
 --bootstrap-server localhost:9092 \
 --property schema.registry.url=http://localhost:8081 --topic t2-a \
---property value.schema=$(jq -c . src/main/resources/backward/t2-a-value.compatible.avsc)
+--property value.schema=$(jq -c . src/main/resources/schema/backward/t2-a-value.compatible.avsc)
 
 ```
 
