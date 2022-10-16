@@ -8,6 +8,7 @@ Here we will go through will check the behavior of consumer, when schema is upgr
 ## Prerequisite
 1. Confluent platform quickstart [ local ](https://docs.confluent.io/platform/current/platform-quickstart.html#prerequisites). 
 2. `jq` for json parsing 
+3. For managing connectors `kcctl`
 
 ## Kafka Consumer and Producer
 ### Scenario
@@ -194,29 +195,91 @@ kafka-avro-console-producer \
 ## Kafka cli commands
 It is not possible to run Kafka cli commands (e.g. kafka-avro-console-consumer, kafka-console-consumer) with schema compatibility mode. It always prints complete messages. One can always pass `--property value.schema` or `--property value.schema.id`, however it ignores these arguments.
 
-## Kafka connect and KSQLDB
+
+## Kafka connect 
 Majority of the popular Kafka Sink Connector ignores Schema Compatibility settings, and cannot run with a fixed schema version. Hence any change in the upstream schema may break the Kafka sink connector. In case of topics with `FORWARD` compatibility, Sink connectors may add SMT (Single message Transformation) `whitelist` in the sink connector to protect from the future upgrade of the schema.
 
 E.g., consider a jdbc sink connector, consuming messages from a topic `pageviews` and upserting into a postgressql database. The topic is set at `FORWARD` compatibility. A new mandatory field is added by producer (which is a compatible change) can create a havoc in the connector. So developer should be cautious around this.
+### Things in action
 
-KSQLDB also behaves in the same line like Kafka Connect. Consider the example given earlier, Let's assume we create a `stream` from topic `pageviews` with the following command, while producer is publishing with original version.
+We will deploy and manage kafka connectors using a small little tool called `kcctl`
 
+1. Push data using kafka datagen connector
+```
+kcctl apply -f src/main/resources/connect/pageview-datagen-avro.json 
+```
+
+2. Set the schema to FORWARD mode
+```
+curl -X PUT \
+-H "Content-Type: application/vnd.schemaregistry.v1+json" \
+-H "Accept: application/vnd.schemaregistry.v1+json, application/vnd.schemaregistry+json, application/json" \
+http://localhost:8081/config/pageviews-value -d '{  "compatibility": "FORWARD"}'
+```
+
+3. deploy postgres sink connector
+```
+kcctl apply -f src/main/resources/connect/postgress-avro-sink.json
+```
+
+4. Push data with upgraded schema using 
+```
+kafka datagen connector
+kcctl apply -f src/main/resources/connect/pageview-datagen-avro.json 
+```
+
+5. Check status of the postgres-sink connector failed, as it tried to add a NOT NULL column on database and failed..
+```
+kcctl describe connector postgres-sink
+
+```
+## KSQLDB
+KSQLDB behaves in the same line as Kafka Consumer and Producer. Consider the example given earlier, Let's assume we create a `stream` from topic `pageviews` with the following command, while producer is publishing with original version.
+
+Once producer upgrades the schema by adding a new mandatory field (say `page-category`), we will see no impact in the stream `pageviews` as well as downstream stream `pageviews_premium`. 
+
+### Things in action
+
+1. Publish data in `pageviews` topic with original schema
+```
+kcctl apply -f src/main/resources/connect/pageview-datagen-avro.json 
+```
+2. Craete a small KSQL pipeline
 ```
 CREATE STREAM pageviews with (KAFKA_TOPIC='pageviews', VALUE_FORMAT='AVRO');
+
+
+CREATE STREAM pageviews_premium with(KAFKA_TOPIC='pageviews-premium', VALUE_FORMAT='AVRO') as select * from pageviews where USERID='User_6';
 ```
-Once producer upgrades the schema by adding a new mandatory field (say `page-name`), we will see in the `pageviews` stream the same column has been added, with previous rows as `null` values to the new column. This might be confusing to the new consumers at first as the newly added column is mandatory as far as the schema goes, while the stream contains `null` value. More importantly the developer creating a KSQL pipeline has to be cautious, as the pipeline may fail or have a cascading effect, if she selects all the column from `pageviews` using `*`.
-Consider example below.
+3. Set the schema to FORWARD mode
+```
+curl -X PUT \
+-H "Content-Type: application/vnd.schemaregistry.v1+json" \
+-H "Accept: application/vnd.schemaregistry.v1+json, application/vnd.schemaregistry+json, application/json" \
+http://localhost:8081/config/pageviews-value -d '{  "compatibility": "FORWARD"}'
+```
+4. At this point of time the schema for `pageviews-premium` is same as `pageviews` apart from all mandatory fields in `pageviews` have become optional in `pageviews-premium`. Also the schema evolution compatibility is not set at the subject level. Probably it will be better that schema and properties for downstream topics should explicitly set and not defined by KSQLDB.
 
 ```
-CREATE STREAM pageviews-json as select * from pageviews where page-category="premium" (KAFKA_TOPIC='pageviews-json', VALUE_FORMAT='AVRO');
- ```
-Aparently, this cascading effect may seem liitle or even may look beneficial. However consider at the end of all KSQL pipeline the data will emit from Kafka, things may break incase it's a kafka sink connector, as explained a little earlier.
-Also another interesting things may happen, if all the kafka topics in the pipeline does not have the same compatibility setting, the pipeline may break because of an compatible change in upstream topic is incompatible in the downstream topic.
+curl -s http://localhost:8081/subjects/pageviews-premium-value/versions/latest/schema  | jq -c .
 
-A simple way to resolve this kind of issues will be use the column names explicitly, even if all the columns need to be transported to downstream `stream` or `table`.
+{"type":"record","name":"KsqlDataSourceSchema","namespace":"io.confluent.ksql.avro_schemas","fields":[{"name":"VIEWTIME","type":["null","long"],"default":null},{"name":"USERID","type":["null","string"],"default":null},{"name":"PAGEID","type":["null","string"],"default":null}],"connect.name":"io.confluent.ksql.avro_schemas.KsqlDataSourceSchema"}
+
+#Evolution setting
+curl http://localhost:8081/config/pageviews-premium-value
+
+{"error_code":40408,"message":"Subject 'pageviews-premium-value' does not have subject-level compatibility configured"}
+``` 
+5. Upgrade `pageviews` topic with new schema 
+```
+kcctl apply -f src/main/resources/connect/pageview-datagen-avro-upgraded.json 
+``` 
+6. At this point of time there will no difference between streams `pageviews` and `pageview-premium`. However there are differences in the schema, as `pageviews-value` will have newly added `page-category` field, which `pageview-premium-value` won't have.
+
 
 ## Last few words
-Schema compatibility and upgrade topic may look difficult if not confusing to many. Adding spice on the top, the effect of schema upgrade is not exactly same across the ecosystem. Here are some of the things we have started following in our current team
-1. We never allow to change the compatibility setting of a topic, although it is technically feasible
-2. There are some usecases (Request-response pattern), where the schema is governed by Consumers. In these cases we can make the schema read-only. So that producers don't insert different schema (though compatible) in the schema registry. This would require a small change of code for the producers.
-3. If someone is using Confluent enterprise edition, they can turn on schema validation in Kafka broker. This will ensure that no garbage data is produced to the broker. 
+Schema compatibility and upgrade topic may look difficult if not confusing to many. Adding spice on the top, the effect of schema upgrade is not exactly same across the ecosystem. Here are some of the thoughts
+1. Set the global schema compatibility as `FORWARD`, as majority of the times we see schema are owned by producers.
+2. We never allow to change the compatibility setting of a topic, although it is technically feasible
+3. There are some usecases (Request-response pattern), where the schema is governed by Consumers. In these cases we can make the schema read-only. So that producers don't insert different schema (though compatible) in the schema registry. This would require a small change of code for the producers.
+4. If someone is using Confluent enterprise edition, they can turn on schema validation in Kafka broker. This will ensure that no garbage data is produced to the broker. 
