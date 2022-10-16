@@ -9,7 +9,7 @@
       "key.converter": "org.apache.kafka.connect.storage.StringConverter",
       "value.converter.schemas.enable": "true",
       "value.converter": "io.confluent.connect.avro.AvroConverter",
-      "value.converter.schema.registry.url":"http://schema-registry:8081",
+      "value.converter.schema.registry.url":"http://localhost:8081",
       "tasks.max": "1"
     }
   }
