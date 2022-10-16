@@ -1,0 +1,15 @@
+{
+    "name": "pageview-datagen-avro",
+    "config": {
+      "connector.class": "io.confluent.kafka.connect.datagen.DatagenConnector",
+      "kafka.topic": "pageviews",
+      "iterations": 10,
+      "schema": "{\"namespace\":\"ksql\",\"name\":\"pageviews\",\"type\":\"record\",\"fields\":[{\"name\":\"viewtime\",\"type\":{\"type\":\"long\",\"format_as_time\":\"unix_long\",\"arg.properties\":{\"iteration\":{\"start\":1,\"step\":10}}}},{\"name\":\"userid\",\"type\":{\"type\":\"string\",\"arg.properties\":{\"regex\":\"User_[1-9]\"}}},{\"name\":\"pageid\",\"type\":{\"type\":\"string\",\"arg.properties\":{\"regex\":\"Page_[1-9][0-9]\"}}}]}",
+      "schema.keyfield": "pageid",
+      "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+      "value.converter.schemas.enable": "true",
+      "value.converter": "io.confluent.connect.avro.AvroConverter",
+      "value.converter.schema.registry.url":"http://schema-registry:8081",
+      "tasks.max": "1"
+    }
+  }
