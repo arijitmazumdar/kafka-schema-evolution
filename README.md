@@ -233,8 +233,8 @@ kcctl apply -f src/main/resources/connect/pageview-datagen-avro.json
 kcctl describe connector postgres-sink
 
 ```
-## KSQLDB
-KSQLDB behaves in the same line as Kafka Consumer and Producer. Consider the example given earlier, Let's assume we create a `stream` from topic `pageviews` with the following command, while producer is publishing with original version.
+## ksqlDB
+ksqlDB behaves in the same line as Kafka Consumer and Producer. Consider the example given earlier, Let's assume we create a `stream` from topic `pageviews` with the following command, while producer is publishing with original version.
 
 Once producer upgrades the schema by adding a new mandatory field (say `page-category`), we will see no impact in the stream `pageviews` as well as downstream stream `pageviews_premium`. 
 
@@ -244,7 +244,7 @@ Once producer upgrades the schema by adding a new mandatory field (say `page-cat
 ```
 kcctl apply -f src/main/resources/connect/pageview-datagen-avro.json 
 ```
-2. Craete a small KSQL pipeline
+2. Craete a small ksql pipeline
 ```
 CREATE STREAM pageviews with (KAFKA_TOPIC='pageviews', VALUE_FORMAT='AVRO');
 
@@ -258,7 +258,7 @@ curl -X PUT \
 -H "Accept: application/vnd.schemaregistry.v1+json, application/vnd.schemaregistry+json, application/json" \
 http://localhost:8081/config/pageviews-value -d '{  "compatibility": "FORWARD"}'
 ```
-4. At this point of time the schema for `pageviews-premium` is same as `pageviews` apart from all mandatory fields in `pageviews` have become optional in `pageviews-premium`. Also the schema evolution compatibility is not set at the subject level. Probably it will be better that schema and properties for downstream topics should explicitly set and not defined by KSQLDB.
+4. At this point of time the schema for `pageviews-premium` is same as `pageviews` apart from all mandatory fields in `pageviews` have become optional in `pageviews-premium`. Also the schema evolution compatibility is not set at the subject level. Probably it will be better that schema and properties for downstream topics should explicitly set and not defined by ksqlDB.
 
 ```
 curl -s http://localhost:8081/subjects/pageviews-premium-value/versions/latest/schema  | jq -c .
