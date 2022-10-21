@@ -11,9 +11,6 @@ Here we will go through will check the behavior of consumer, when schema is upgr
 3. For managing connectors `kcctl`
 
 ## Kafka Consumer and Producer
-### Scenario
-1. In the first scenario Prodcucer is publishing (kafka-avro-producer) into topic `t1-a` using `t1-a-value.0.avsc`, and consumer (java program) consuming the same schema. The topic has been set to `FORWARD` compatibility mode. The producer upgrades the schema to `t1-a-value.compatible.avsc`, while consumer consumes using the old schema. In the following example it is demonstrated that consumer can consume the message without any issue, infact it is ignorant to the change of the schema.
-2. In the second scenario Prodcucer is publishing (kafka-avro-producer) into topic `t2-a` using `t2-a-value.0.avsc`, and consumer (java program) consuming the same schema. The topic has been set to `BACKWARD` compatibility mode. The consumer upgrades the schema to `t2-a-value.compatible.avsc`, while producer produces using the old schema. In the following example it is demonstrated that consumer can consume the message with the new schema any issue, infact to it is ignored to the change of the schema.
 
 ### Forward
 
@@ -193,7 +190,7 @@ kafka-avro-console-producer \
 ```
 
 ## Kafka cli commands
-It is not possible to run Kafka cli commands (e.g. kafka-avro-console-consumer, kafka-console-consumer) with schema compatibility mode. It always prints full messages. One can always pass `--property value.schema` or `--property value.schema.id`, however commands ignores these arguments.
+It is easy to use Kafka cli based producer commands to generate messages in schema Compatibility mode. However not possible to run Kafka cli commands (e.g. kafka-avro-console-consumer, kafka-console-consumer) with schema compatibility mode. It always prints complete messages produced by producer. One can always pass `--property value.schema` or `--property value.schema.id`, however commands ignores these arguments.
 
 
 ## Kafka connect 
@@ -205,6 +202,8 @@ It's not too difficult to work with Kafka Connect source connectors. One needs t
 Kafka Sink Connectors are a different story. They ignores Schema Compatibility settings, and cannot run with a fixed schema version. Hence any change in the upstream schema results the sink connector to read the message in new structure (addition/deletion of fields). This may break the Kafka sink connector. To prevent this, Sink connectors may add SMT (Single message Transformation) in the sink connector to only include fields required by downstream system. Refer [ here ](https://docs.confluent.io/platform/current/connect/transforms/replacefield.html#replacefield).
 
 E.g., consider a jdbc sink connector, consuming messages from a topic `pageviews` and upserting into a postgressql database. The topic is set at `FORWARD` compatibility. A new mandatory field is added by producer (which is a compatible change) can create a havoc in the connector. So developer should be cautious around this. Now when the topic is set at `BACKWARD` mode, we cannot upgrade the topic with adding a new mandatory field. However we can add an optional field say `pagecategory` with a `default` value as `regular`. However in the sink connector we will not see any effect at all. When producers are publishing the messages based on old schema, the sink connector will receive as-is without newly added `pagecategory` field with default value as `regular`.
+
+Effect is not so impactful when the topic is set at BACKWARD mode though. We may not upgrade the topic by adding a new mandatory field, but can add an optional field (say `pagecategory` with a `default` value as `regular`).  However in the sink connector we will not see any effect at all. When  producers are publishing the messages based on old schema, the sink  connector will receive as-is without newly added pagecategory field with default value as `regular`.
 
 ### Things in action
 
@@ -280,25 +279,11 @@ curl http://localhost:8081/config/pageviews-premium-value
 ```
 kcctl apply -f src/main/resources/connect/pageview-datagen-avro-upgraded.json 
 ``` 
-6. At this point of time there will no difference between streams `pageviews` and `pageview-premium`. However there are differences in the schema, as `pageviews-value` will have newly added `page-category` field, which `pageview-premium-value` won't have. Something like below,
+6. At this point of time there will no difference between streams `pageviews` and `pageview-premium`. However there are differences in the schema, as `pageviews-value` will have newly added `page-category` field, which `pageview-premium-value` won't have.
 
-```
-...
-        at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
-        at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
-        at java.base/java.lang.Thread.run(Thread.java:829)
-      Caused by: io.confluent.connect.jdbc.sink.TableAlterOrCreateException: Cannot ALTER TABLE "pageviews" to add missing field SinkRecordField{schema=Schema{STRING}, name='pagecategory', isPrimaryKey=false}, as the field is not optional and does not have a default value
-...
-```
-
-## Some best practices
-1. Set the global schema compatibility as `FORWARD`, as majority of the times we see schema are owned by producers.
-2. We never allow to change the compatibility setting of a topic, although it is technically feasible
-3. There are some usecases (Request-response pattern), where the schema is governed by Consumers. In these cases we can make the schema read-only. So that producers don't insert different schema (though compatible) in the schema registry. This would require a small change of code for the producers.
-4. If someone is using Confluent enterprise edition, they can turn on schema validation in Kafka broker. This will ensure that no garbage data is produced to the broker. 
 
 ## Last few words
-Schema compatibility and upgrade topic may look difficult if not confusing to many. Adding spice on the top, the effect of schema upgrade is not exactly same across the ecosystem. However it's very powerful and can protect interfaces. Future proofing is a difficult subject, and developers should consider it before start writing the code.
+Schema compatibility and upgrade topic may look difficult if not confusing topic to many. However it's very powerful and can protect interfaces especially when changes happens outside of the domain. Future proofing is a difficult subject, but developers should must consider the consequences before start writing the code for Kafka based interfaces.
 
 *Please let me know your feedback or observations via github issues, if I missed anything*
 
