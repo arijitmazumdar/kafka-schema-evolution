@@ -1,4 +1,7 @@
 # Kafka Schema Evolution and it's effect on Kafka ecosystem
+
+The full blog you can read [here](https://medium.com/@arijit.mazumdar/understanding-the-effect-of-schema-evolution-on-kafka-ecosystem-1d7a66466022)
+
 ![kafka schema Registry](/images/Kafka-schema-flow.png)
 
 Schema registry plays an important and pivotal role in Kafka world to exchange schema based data to reduce interoperability between data producers and consuemrs. Here producers can share data with consumers via kafka, while the schema is stored in schema registry. The message itself carries the reference of the schema, that helps consumers to refer the schema from the schema registry. Unlike REST world, in Kafka the consumers and producers can upgrade the schema independently within some boundaries. These boundary is defined by schema evolution compatibility setting. Kafka supports different schema compatibility setting. Details can be found [here](https://docs.confluent.io/platform/current/schema-registry/avro.html#compatibility-types). Though schema compatibility is applicable for producers and consumers, but most of the complexity lies for the consumer. 
